@@ -154,9 +154,9 @@
               fundefs)]
     [if0 (cond true_block false_block)
          (if
-           (= 0 (interp cond))
-           (interp true_block)
-           (interp false_block))]
+           (= 0 (interp cond fundefs))
+           (interp true_block fundefs)
+           (interp false_block fundefs))]
     [app (func arg)
          (local [(define fun (lookup-fundef func fundefs))]
            (interp (subst (fundef-param fun)
@@ -182,3 +182,10 @@
 (test (interp (parse '{if0 0 1 2})
                 (list))
         1)
+(test (interp (parse '{if0 1 1 2})
+                (list))
+        2)
+
+(test (interp (parse '{if0 {f 5} 1 2})
+              (list (fundef 'f 'x (parse '{- x 5}))))
+      1)
