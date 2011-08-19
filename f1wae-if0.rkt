@@ -65,6 +65,11 @@
       (with 'x (add (num 1) (num 2))
         (sub (id 'x) (num 8))))
 
+(test (parse '{if0 0 0 0}) (if0
+                            (num 0)
+                            (num 0)
+                            (num 0)))
+
 (test (parse '{if0 {- 1 1} {+ 0 0} {+ 0 0}}) (if0 
                                               (sub (num 1) (num 1)) 
                                               (add (num 0) (num 0)) 
