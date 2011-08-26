@@ -41,9 +41,10 @@
           (parse (third input)))]
     [(and (= 3 (length input))
           (eq? (first input) 'with))
-     (fun (first (second input))
-          (parse (third input)))
-     (parse (third input))]
+     (app
+      (fun (first (second input))
+           (parse (third input)))
+     (parse (second (second input))))]
     [(= 2 (length input))
      (app (parse (first input))
           (parse (second input)))]
