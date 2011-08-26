@@ -11,9 +11,6 @@
   [sub (left FWAE?)
        (right FWAE?)]
   [id (name symbol?)]
-  [with (name symbol?)
-        (expr FWAE?)
-        (body FWAE?)]
   [if0  (cond FWAE?)
         (true_block FWAE?)
         (false_block FWAE?)]
@@ -67,8 +64,9 @@
                                         (add (num 2) (num 1))))
 (test (parse 'x) (id 'x))
 (test (parse '{with {x {+ 1 2}} {- x 8}})
-      (with 'x (add (num 1) (num 2))
-        (sub (id 'x) (num 8))))
+      (app
+       (fun 'x (sub (id 'x) (num 8)))
+       (add 1 2)))
 
 (test (parse '{if0 0 0 0}) (if0
                             (num 0)
@@ -94,12 +92,6 @@
     [id (name-id) (if (symbol=? name name-id)
                       val
                       (id name-id))]
-    [with (name-def expr body)
-          (with name-def
-                (subst name val expr)
-                (if (symbol=? name name-def)
-                    body
-                    (subst name val body)))]
     [if0 (cond true_block false_block)
          (if0
           (subst name val cond)
@@ -125,13 +117,6 @@
       (id 'y))
 (test (subst 'y (num 10) (sub (id 'x) (num 1)))
       (sub (id 'x) (num 1)))
-
-(test (subst 'x (num 10) (with 'y (num 17) (id 'x)))
-      (with 'y (num 17) (num 10)))
-(test (subst 'x (num 10) (with 'y (id 'x) (id 'y)))
-      (with 'y (num 10) (id 'y)))
-(test (subst 'x (num 10) (with 'x (id 'y) (id 'x)))
-      (with 'x (id 'y) (id 'x)))
 (test (subst 'x (num 10) (parse '{with {x y} x}))
       (parse '{with {x y} x}))
 
@@ -148,10 +133,6 @@
     [sub (left right) (num (- (num-n (interp left))
                               (num-n (interp right))))]
     [id (name) (error 'interp "unbound identifier")]
-    [with (name expr body) 
-      (interp (subst name
-                     (interp expr)
-                     body))]
     [if0 (cond true_block false_block)
          (if
            (= 0 (num-n (interp cond)))
@@ -169,10 +150,6 @@
       (num 17))
 (test (interp (sub (num 9) (num 8)))
       (num 1))
-(test (interp (with 'x (add (num 1) (num 17))
-                (add (id 'x) (num 12)))
-              )
-      (num 30))
 (test/exn (interp (id 'x)) "unbound identifier")
 
 (test (interp (parse '{if0 0 1 2})
