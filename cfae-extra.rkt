@@ -12,8 +12,8 @@
        (right CFAE?)]
   [div (left CFAE?)
        (right CFAE?)]
-;;  [mul (left CFAE?)
-;;       (right CFAE?)]
+  [mul (left CFAE?)
+       (right CFAE?)]
   [id (name symbol?)]
   [if1 (cond CFAE?)
        (true_block CFAE?)
@@ -67,6 +67,10 @@
     [(and (= 3 (length input))
           (eq? (first input) '/))
      (div (parse (second input))
+          (parse (third input)))]
+    [(and (= 3 (length input))
+          (eq? (first input) '*))
+     (mul (parse (second input))
           (parse (third input)))]
     [(and (= 3 (length input))
           (eq? (first input) 'with))
@@ -149,6 +153,8 @@
     [sub (left right) (numV (- (numV-n (interp left env))
                                (numV-n (interp right env))))]
     [div (left right) (numV (/ (numV-n (interp left env))
+                               (numV-n (interp right env))))]
+    [mul (left right) (numV (* (numV-n (interp left env))
                                (numV-n (interp right env))))]
     [pair (fst snd) (pairV (interp fst env)
                            (interp snd env))]
