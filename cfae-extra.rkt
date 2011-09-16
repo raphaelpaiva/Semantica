@@ -52,6 +52,8 @@
           (eq? (first input) '+))
      (add (parse (second input))
           (parse (third input)))]
+    [(eq? (first input) '+)
+     (foldl add (num 0) (map num (rest input)))]
     [(and (= 3 (length input))
           (eq? (first input) '-))
      (sub (parse (second input))
