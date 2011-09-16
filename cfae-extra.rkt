@@ -66,7 +66,7 @@
                    ,(third input)}
               ,(second (second input))})]
     [(and (= 4 (length input))
-          (eq? (first input) 'if0))
+          (eq? (first input) 'if1))
      (if1 (parse (second input))
           (parse (third input))
           (parse (fourth input)))]
