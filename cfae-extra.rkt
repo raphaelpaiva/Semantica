@@ -11,9 +11,9 @@
   [sub (left CFAE?)
        (right CFAE?)]
   [id (name symbol?)]
-  [if0  (cond CFAE?)
-        (true_block CFAE?)
-        (false_block CFAE?)]
+  [if1 (cond CFAE?)
+       (true_block CFAE?)
+       (false_block CFAE?)]
   [app (func CFAE?)
        (arg CFAE?)]
   [fun (param symbol?)
@@ -63,7 +63,7 @@
               ,(second (second input))})]
     [(and (= 4 (length input))
           (eq? (first input) 'if0))
-     (if0 (parse (second input))
+     (if1 (parse (second input))
           (parse (third input))
           (parse (fourth input)))]
     [(and (= 3 (length input))
@@ -141,12 +141,12 @@
     [fst (pair) (pairV-first (interp pair env))]
     [snd (pair) (pairV-second (interp pair env))]
     [id (name) (lookup-env name env)]
-    [if0 (cond true_block false_block)
+    [if1 (cond true_block false_block)
          (let [(n (interp cond env))]
            (if
             (and (numV? n) (= 0 (numV-n n)))
-            (interp true_block env)
-            (interp false_block env)))]
+            (interp false_block env)
+            (interp true_block env)))]
     [app (func arg)
          (local [(define clos (interp func env))]
            (interp (clos-body clos)
