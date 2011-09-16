@@ -77,6 +77,11 @@
     [(eq? (first input) '*)
      (foldl mul (num 1) (map parse (rest input)))]
     [(and (= 3 (length input))
+          (eq? (first input) '=))
+     (add (sub (parse (second input))
+               (parse (third input)))
+          (num 1))]
+    [(and (= 3 (length input))
           (eq? (first input) 'with))
      (parse `{{fun {,(first (second input))}
                    ,(third input)}
