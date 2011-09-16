@@ -220,7 +220,7 @@
 
 (define MAP (parse '{fix {fun {map}
                               {fun {f l}
-                                   {if0 l
+                                   {if1 l
                                         0
                                         {pair {f {first l}} {map f {rest l}}}}}}}))
 
