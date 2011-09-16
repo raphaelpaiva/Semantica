@@ -68,10 +68,14 @@
           (eq? (first input) '/))
      (div (parse (second input))
           (parse (third input)))]
+    [(eq? (first input) '/)
+     (foldr div (num 1) (map parse (rest input)))]
     [(and (= 3 (length input))
           (eq? (first input) '*))
      (mul (parse (second input))
           (parse (third input)))]
+    [(eq? (first input) '*)
+     (foldl mul (num 1) (map parse (rest input)))]
     [(and (= 3 (length input))
           (eq? (first input) 'with))
      (parse `{{fun {,(first (second input))}
