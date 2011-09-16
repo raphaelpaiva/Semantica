@@ -10,6 +10,10 @@
        (right CFAE?)]
   [sub (left CFAE?)
        (right CFAE?)]
+  [div (left CFAE?)
+       (right CFAE?)]
+;;  [mul (left CFAE?)
+;;       (right CFAE?)]
   [id (name symbol?)]
   [if1 (cond CFAE?)
        (true_block CFAE?)
@@ -60,6 +64,10 @@
           (parse (third input)))]
     [(eq? (first input) '-)
      (foldl sub (num 0) (map parse (rest input)))]
+    [(and (= 3 (length input))
+          (eq? (first input) '/))
+     (div (parse (second input))
+          (parse (third input)))]
     [(and (= 3 (length input))
           (eq? (first input) 'with))
      (parse `{{fun {,(first (second input))}
@@ -139,6 +147,8 @@
     [add (left right) (numV (+ (numV-n (interp left env))
                                (numV-n (interp right env))))]
     [sub (left right) (numV (- (numV-n (interp left env))
+                               (numV-n (interp right env))))]
+    [div (left right) (numV (/ (numV-n (interp left env))
                                (numV-n (interp right env))))]
     [pair (fst snd) (pairV (interp fst env)
                            (interp snd env))]
