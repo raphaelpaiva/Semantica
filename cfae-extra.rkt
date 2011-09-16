@@ -226,8 +226,9 @@
 (define MAP (parse '{fix {fun {map}
                               {fun {f l}
                                    {if1 l
+                                        {pair {f {first l}} {map f {rest l}}}
                                         0
-                                        {pair {f {first l}} {map f {rest l}}}}}}}))
+                                        }}}}))
 
 (define (eval t)
   (interp (parse t) (env-entry 'map
