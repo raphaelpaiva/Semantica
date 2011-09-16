@@ -53,11 +53,13 @@
      (add (parse (second input))
           (parse (third input)))]
     [(eq? (first input) '+)
-     (foldl add (num 0) (map num (rest input)))]
+     (foldl add (num 0) (map parse (rest input)))]
     [(and (= 3 (length input))
           (eq? (first input) '-))
      (sub (parse (second input))
           (parse (third input)))]
+    [(eq? (first input) '-)
+     (foldl sub (num 0) (map parse (rest input)))]
     [(and (= 3 (length input))
           (eq? (first input) 'with))
      (parse `{{fun {,(first (second input))}
