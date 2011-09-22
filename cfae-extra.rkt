@@ -18,6 +18,8 @@
   [if1 (cond CFAE?)
        (true_block CFAE?)
        (false_block CFAE?)]
+  [lt (left CFAE?)
+      (right CFAE?)]
   [app (func CFAE?)
        (arg CFAE?)]
   [fun (param symbol?)
@@ -81,6 +83,10 @@
      (add (sub (parse (second input))
                (parse (third input)))
           (num 1))]
+    [(and (= 3 (length input))
+          (eq? (first input) '<))
+     (lt (parse (second input))
+         (parse (third input)))]
     [(and (= 3 (length input))
           (eq? (first input) 'with))
      (parse `{{fun {,(first (second input))}
@@ -176,6 +182,13 @@
             (and (numV? n) (= 0 (numV-n n)))
             (interp false_block env)
             (interp true_block env)))]
+    [lt (left right)
+        (let [(l (interp left env))]
+          (let [(r (interp right env))]
+            (if
+             (and (numV? l) (numV? r) (< (numV-n l) (numV-n r)))
+             (interp (num 1) env)
+             (interp (num 0) env))))]
     [app (func arg)
          (local [(define clos (interp func env))]
            (interp (clos-body clos)
