@@ -12,7 +12,7 @@
   [deref (exp PIAE?)]
   [ref (var symbol?)]
   [app (func symbol?)
-       (arg PIAE?)])
+       (arg list?)])
 
 ;; parse-exp: s-expr -> PIAE
 ;; (parse '{+ 3 4}) -> (add (num 3) (num 4))
@@ -35,7 +35,7 @@
      (deref (parse-exp (second input)))]
     [(symbol? (first input))
      (app (first input)
-          (parse-exp (second input)))]
+          (parse-exp (first (second input))))]
     [else (error 'parse "syntax error")]))
 
 ;; PWIMP = {if <PIAE> <PWIMP> <PWIMP>} | {while <PIAE> <PWIMP>} | {set <id> <PIAE>}
@@ -58,7 +58,7 @@
         (body PWIMP?)]
   [ret (val PIAE?)]
   [capp (func symbol?)
-        (arg PIAE?)])
+        (arg list?)])
   
 (define (parse-cmd input)
   (cond
@@ -87,7 +87,7 @@
      (ret (parse-exp (second input)))]
     [(symbol? (first input))
      (capp (first input)
-          (parse-exp (second input)))]
+          (parse-exp (first (second input))))]
     [else (foldr seq (skip) (map parse-cmd input))]))
 
 (define-type Env
@@ -104,7 +104,7 @@
 
 (define-type FunDef
   [fundef (name symbol?)
-          (param symbol?)
+          (param list?)
           (body PWIMP?)])
 
 ;; lookup-env : ID Env -> Loc
@@ -167,15 +167,15 @@
            (local ([define val/mem (interp-exp exp funs env mem)])
              (list (lookup-mem (first val/mem) 
                                (second val/mem)) (second val/mem)))]
-    [app (func arg)
+    [app (func args)
          (local ([define f (lookup-fundef func funs)]
-                 [define arg/mem (interp-exp arg funs env mem)]
+                 [define args/mem (interp-exp args funs env mem)]
                  [define newmem (interp-cmd (with 'ret
                                                   (num 0)
                                                   (with (fundef-param f)
-                                                        (num (first arg/mem))
+                                                        (num (first (first args/mem)))
                                                         (fundef-body f)))
-                                            funs (env-empty) (second arg/mem))])
+                                            funs (env-empty) (second args/mem))])
            (list (lookup-mem (lookup-mem 0 newmem) newmem) newmem))]))
 
 ;; interp-cmd: PWIMP Env Mem -> Mem
@@ -218,14 +218,14 @@
                                (mem-entry free
                                           (first val/mem)
                                           (second val/mem))))))]
-    [capp (func arg)
+    [capp (func args)
           (local ([define f (lookup-fundef func funs)]
-                  [define arg/mem (interp-exp arg funs env mem)])
+                  [define args/mem (interp-exp args funs env mem)])
             (interp-cmd (with 'ret
                               (num 0)
                               (with (fundef-param f)
-                                    (num (first arg/mem))
-                                    (fundef-body f))) funs (env-empty) (second arg/mem)))]
+                                    (num (first (first args/mem)))
+                                    (fundef-body f))) funs (env-empty) (second args/mem)))]
     [ret (exp)
          (local ([define val/mem (interp-exp exp funs env mem)])
            (mem-entry (lookup-env 'ret env)
@@ -311,7 +311,7 @@
              {set {deref y} {- x 1}}}}
           {print {deref y}}
           {print {deref {- y 1}}}} '(x y) (list (fundef 'dec
-                                                        'x
+                                                        (list 'x)
                                                         (parse-cmd '{ret {- x 1}}))))
 
 (interp '{{set x 3}
