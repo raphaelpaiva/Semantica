@@ -253,7 +253,7 @@
 (define FOLDR (parse '{fix {fun {foldr}
                                 {fun {f i l}
                                      {if1 l
-                                          {f {{first l} {foldr f i {rest l}}}}
+                                          {f {first l} {foldr f i {rest l}}}
                                           i
                                           }}}}))
 
