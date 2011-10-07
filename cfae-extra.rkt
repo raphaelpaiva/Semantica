@@ -243,10 +243,29 @@
                                         0
                                         }}}}))
 
+(define FOLDL (parse '{fix {fun {foldl}
+                                {fun {f i l}
+                                     {if1 l
+                                          {foldl f {f i {first l}} {rest l}}
+                                          i
+                                          }}}}))
+
+(define FOLDR (parse '{fix {fun {foldr}
+                                {fun {f i l}
+                                     {if1 l
+                                          {f {{first l} {foldr f i {rest l}}}}
+                                          i
+                                          }}}}))
+
 (define (eval t)
   (interp (parse t) (env-entry 'map
                                (interp MAP (env-empty))
-                               (env-empty))))
+                               (env-entry 'foldl
+                                          (interp FOLDL (env-empty))
+                                          (env-entry 'foldr
+                                                     (interp FOLDR (env-empty))
+                                                     (env-empty))
+                                          ))))
 
 #|
 
