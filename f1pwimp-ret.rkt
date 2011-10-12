@@ -36,7 +36,7 @@
      (deref (parse-exp (second input)))]
     [(symbol? (first input))
      (app (first input)
-          (list (parse-exp (second input))))]
+          (map parse-exp (rest input)))]
     [else (error 'parse "syntax error")]))
 
 ;; PWIMP = {if <PIAE> <PWIMP> <PWIMP>} | {while <PIAE> <PWIMP>} | {set <id> <PIAE>}
@@ -88,7 +88,7 @@
      (ret (parse-exp (second input)))]
     [(symbol? (first input))
      (capp (first input)
-          (list (parse-exp (second input))))]
+          (map parse-exp (rest input)))]
     [else (foldr seq (skip) (map parse-cmd input))]))
 
 (define-type Env
@@ -304,6 +304,7 @@
     (second ((mdo (mset 0 free)
                  (interp-cmd (parse-cmd cmd) funs env)) (make-vector 30)))))
 
+#|
 (interp '{{set x 3}
           {set y 2}
           {while x
@@ -370,11 +371,12 @@
           {print {deref {- y 1}}}} '(x y) (list (fundef 'dec
                                                         (list 'x)
                                                         (parse-cmd '{ret {- x 1}}))))
+|#
+
 (interp '{{set x 75}
-          {set y 0}
-          {print {sum x y}}} '(x y) (list (fundef 'sum
-                                          (list 'x 'y)
-                                          (parse-cmd '{ret {+ x y}}))))
+          {print {sum x}}} '(x) (list (fundef 'sum
+                                          (list 'x)
+                                          (parse-cmd '{ret {+ x x}}))))
 
 #|
 (interp '{{set x 3}
