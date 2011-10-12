@@ -17,3 +17,13 @@ Alocar espaço na pilha:
 (mdo (base <- (allocn (lenght args)))
      (vret <- (second (foldr ...))) #1
      (popn (lenght args)))
+     
+     
+(foldr (lambda (arg loc/comp)
+         (list (- 1 (first loc/comp))
+               (mdo (varg <- (interp-exp arg funs env))
+                    (mset (first loc/comp) varg)
+                    (second loc/comp))))
+       (list (+ base (- (length args) 1))  ; endereço do último argumento
+             (interp-cmd body (make-env (env-empty) vars base)))
+       args)

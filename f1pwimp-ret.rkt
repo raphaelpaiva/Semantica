@@ -189,10 +189,14 @@
        (mset 0 (+ free n))
        (unit free)))
 
+(define (popn n)
+  (mdo (free <- (mget 0))
+       (mset 0 (- free n))))
+
 (define (make-env init-env vars base)
   (if (null? vars)
       init-env
-      (env-entry (first vars)
+      (env-entry (id-name (first vars))
                  base
                  (make-env init-env (rest vars) (+ base 1)))))
 
@@ -213,16 +217,20 @@
     [deref (exp)
            (mdo (loc <- (interp-exp exp funs env))
                 (mget loc))]
-    [app (func arg)
+    [app (func args)
          (let [(f (lookup-fundef func funs))]
-           (mdo (varg <- (interp-exp (first arg) funs env))
-                (parg <- alloc)
-                (mset parg varg)
-                (vret <- (interp-cmd (fundef-body f) funs (env-entry (first (fundef-param f))
-                                                                    parg
-                                                                    (env-empty))))
-                pop
+           (mdo (base <- (allocn (length args)))
+                (vret <- (second (foldr (lambda (arg loc/comp)
+                                           (list (- 1 (first loc/comp))
+                                                 (mdo (varg <- (interp-exp arg funs env))
+                                                      (mset (first loc/comp) varg)
+                                                      (second loc/comp))))
+                                         (list (+ base (- (length args) 1))  ; endereço do último argumento
+                                               (interp-cmd (fundef-body f) funs (make-env (env-empty) args base)))
+                                         args)))
+                (popn (length args))
                 (unit vret)))]))
+                      
 
 ;; interp-cmd: PWIMP Env -> (Mem -> (void | num) Mem)
 (define (interp-cmd imp funs env)
@@ -264,15 +272,18 @@
                (vret <- (interp-cmd body funs (env-entry var free env)))
                pop
                (unit vret))]
-    [capp (func arg)
+    [capp (func args)
           (let [(f (lookup-fundef func funs))]
-            (mdo (varg <- (interp-exp (first arg) funs env))
-                 (parg <- alloc)
-                 (mset parg varg)
-                 (vret <- (interp-cmd (fundef-body f) funs (env-entry (first (fundef-param f))
-                                                                      parg
-                                                                      (env-empty))))
-                 pop))]
+            (mdo (base <- (allocn (length args)))
+                (vret <- (second (foldr (lambda (arg loc/comp)
+                                           (list (- 1 (first loc/comp))
+                                                 (mdo (varg <- (interp-exp arg funs env))
+                                                      (mset (first loc/comp) varg)
+                                                      (second loc/comp))))
+                                         (list (+ base (- (length args) 1))  ; endereço do último argumento
+                                               (interp-cmd (fundef-body f) funs (make-env (env-empty) args base)))
+                                         args)))
+                (popn (length args))))]
     [ret (exp)
          (interp-exp exp funs env)]))
 
@@ -347,6 +358,7 @@
                  {{print {deref {+ x {- y 1}}}}
                   {set y {- y 1}}}}} '(x y) '())
 
+
 (interp '{{set x 3}
           {set y {ref x}}
           {while {deref y}
@@ -358,7 +370,13 @@
           {print {deref {- y 1}}}} '(x y) (list (fundef 'dec
                                                         (list 'x)
                                                         (parse-cmd '{ret {- x 1}}))))
+(interp '{{set x 75}
+          {set y 0}
+          {print {sum x y}}} '(x y) (list (fundef 'sum
+                                          (list 'x 'y)
+                                          (parse-cmd '{ret {+ x y}}))))
 
+#|
 (interp '{{set x 3}
           {set y {ref x}}
           {while {deref y}
@@ -373,3 +391,4 @@
                                                                          {- {deref x} 1}}
                                                                      {ret {deref x}}}))))
 
+|#
