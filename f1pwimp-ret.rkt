@@ -13,7 +13,7 @@
   [deref (exp PIAE?)]
   [ref (var symbol?)]
   [app (func symbol?)
-       (arg PIAE?)])
+       (arg list?)])
 
 ;; parse-exp: s-expr -> PIAE
 ;; (parse '{+ 3 4}) -> (add (num 3) (num 4))
@@ -36,7 +36,7 @@
      (deref (parse-exp (second input)))]
     [(symbol? (first input))
      (app (first input)
-          (parse-exp (second input)))]
+          (list (parse-exp (second input))))]
     [else (error 'parse "syntax error")]))
 
 ;; PWIMP = {if <PIAE> <PWIMP> <PWIMP>} | {while <PIAE> <PWIMP>} | {set <id> <PIAE>}
@@ -59,7 +59,7 @@
         (body PWIMP?)]
   [ret (val PIAE?)]
   [capp (func symbol?)
-        (arg PIAE?)])
+        (arg list?)])
   
 (define (parse-cmd input)
   (cond
@@ -88,7 +88,7 @@
      (ret (parse-exp (second input)))]
     [(symbol? (first input))
      (capp (first input)
-          (parse-exp (second input)))]
+          (list (parse-exp (second input))))]
     [else (foldr seq (skip) (map parse-cmd input))]))
 
 (define-type Env
@@ -105,7 +105,7 @@
 
 (define-type FunDef
   [fundef (name symbol?)
-          (param symbol?)
+          (param list?)
           (body PWIMP?)])
 
 ;; lookup-env : ID Env -> Loc
@@ -203,10 +203,10 @@
                 (mget loc))]
     [app (func arg)
          (let [(f (lookup-fundef func funs))]
-           (mdo (varg <- (interp-exp arg funs env))
+           (mdo (varg <- (interp-exp (first arg) funs env))
                 (parg <- alloc)
                 (mset parg varg)
-                (vret <- (interp-cmd (fundef-body f) funs (env-entry (fundef-param f)
+                (vret <- (interp-cmd (fundef-body f) funs (env-entry (first (fundef-param f))
                                                                     parg
                                                                     (env-empty))))
                 pop
@@ -254,10 +254,10 @@
                (unit vret))]
     [capp (func arg)
           (let [(f (lookup-fundef func funs))]
-            (mdo (varg <- (interp-exp arg funs env))
+            (mdo (varg <- (interp-exp (first arg) funs env))
                  (parg <- alloc)
                  (mset parg varg)
-                 (vret <- (interp-cmd (fundef-body f) funs (env-entry (fundef-param f)
+                 (vret <- (interp-cmd (fundef-body f) funs (env-entry (first (fundef-param f))
                                                                       parg
                                                                       (env-empty))))
                  pop))]
@@ -344,7 +344,7 @@
              {set {deref y} {- x 1}}}}
           {print {deref y}}
           {print {deref {- y 1}}}} '(x y) (list (fundef 'dec
-                                                        'x
+                                                        (list 'x)
                                                         (parse-cmd '{ret {- x 1}}))))
 
 (interp '{{set x 3}
@@ -356,7 +356,7 @@
              {print {dec y}}}}
           {print {deref y}}
           {print {deref {- y 1}}}} '(x y) (list (fundef 'dec
-                                                        'x
+                                                        (list 'x)
                                                         (parse-cmd '{{set {deref x} 
                                                                          {- {deref x} 1}}
                                                                      {ret {deref x}}}))))
