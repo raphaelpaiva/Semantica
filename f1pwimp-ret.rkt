@@ -184,6 +184,18 @@
       (cons (list (first l1) (first l2))
             (zip (rest l1) (rest l2)))))
 
+(define (allocn n)
+  (mdo (free <- (mget 0))
+       (mset 0 (+ free n))
+       (unit free)))
+
+(define (make-env init-env vars base)
+  (if (null? vars)
+      init-env
+      (env-entry (first vars)
+                 base
+                 (make-env init-env (rest vars) (+ base 1)))))
+
 ;; interp-exp: PIAE FunDefs Env -> (Mem -> num Mem)
 (define (interp-exp iae funs env)
   (type-case PIAE iae
