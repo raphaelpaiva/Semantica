@@ -378,6 +378,14 @@
                                           (list 'x)
                                           (parse-cmd '{ret {+ x x}}))))
 
+(interp '{{set x 3}
+          {set y 2}
+          {set s {sum x y}}
+          {print s}
+          {print {sum x y}}} '(x y s) (list (fundef 'sum
+                                          (list 'x 'y)
+                                          (parse-cmd '{ret {+ x y}}))))
+
 #|
 (interp '{{set x 3}
           {set y {ref x}}
