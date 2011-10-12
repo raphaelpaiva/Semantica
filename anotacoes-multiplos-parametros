@@ -1,0 +1,19 @@
+dados lista de parametros {x y z}, alocados nos endereços 5, 6 e 7:
+
+(allocn n) reserva n espaços na pilha e retorna o endereço do primero;
+(make-env) retorna o ambiente: (x 5
+                                  (y 6
+                                     (z 7)))
+
+(foldr) prepara o ambiente dando mset nos valores das variaveis e interpretando o <body>
+  resultado:
+    (7 (<body>))
+    (6 (7 -< ez; <body>)
+    (5 (6 <- ey; 7 <- ez; <body>))
+    (4 (5 <- x; 6 <- ey; 7 <- ez; <body>))
+    Podemos descartar o primeiro valor da lista, por isso chamamos (second (foldr ...)) em #1
+
+Alocar espaço na pilha:
+(mdo (base <- (allocn (lenght args)))
+     (vret <- (second (foldr ...))) #1
+     (popn (lenght args)))
