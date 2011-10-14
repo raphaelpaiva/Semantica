@@ -196,7 +196,7 @@
 (define (make-env init-env vars base)
   (if (null? vars)
       init-env
-      (env-entry (id-name (first vars))
+      (env-entry (first vars)
                  base
                  (make-env init-env (rest vars) (+ base 1)))))
 
@@ -221,12 +221,12 @@
          (let [(f (lookup-fundef func funs))]
            (mdo (base <- (allocn (length args)))
                 (vret <- (second (foldr (lambda (arg loc/comp)
-                                           (list (- 1 (first loc/comp))
+                                           (list (- (first loc/comp) 1)
                                                  (mdo (varg <- (interp-exp arg funs env))
                                                       (mset (first loc/comp) varg)
                                                       (second loc/comp))))
                                          (list (+ base (- (length args) 1))  ; endereço do último argumento
-                                               (interp-cmd (fundef-body f) funs (make-env (env-empty) args base)))
+                                               (interp-cmd (fundef-body f) funs (make-env (env-empty) (fundef-param f) base)))
                                          args)))
                 (popn (length args))
                 (unit vret)))]))
@@ -275,15 +275,15 @@
     [capp (func args)
           (let [(f (lookup-fundef func funs))]
             (mdo (base <- (allocn (length args)))
-                (vret <- (second (foldr (lambda (arg loc/comp)
-                                           (list (- 1 (first loc/comp))
+                 (vret <- (second (foldr (lambda (arg loc/comp)
+                                           (list (- (first loc/comp) 1)
                                                  (mdo (varg <- (interp-exp arg funs env))
                                                       (mset (first loc/comp) varg)
                                                       (second loc/comp))))
                                          (list (+ base (- (length args) 1))  ; endereço do último argumento
-                                               (interp-cmd (fundef-body f) funs (make-env (env-empty) args base)))
+                                               (interp-cmd (fundef-body f) funs (make-env (env-empty) (fundef-param f) base)))
                                          args)))
-                (popn (length args))))]
+                 (popn (length args))))]
     [ret (exp)
          (interp-exp exp funs env)]))
 
@@ -383,8 +383,8 @@
           {set s {sum x y}}
           {print s}
           {print {sum x y}}} '(x y s) (list (fundef 'sum
-                                          (list 'x 'y)
-                                          (parse-cmd '{ret {+ x y}}))))
+                                                    (list 'x 'y)
+                                                    (parse-cmd '{ret {+ x y}}))))
 
 #|
 (interp '{{set x 3}
