@@ -307,6 +307,11 @@
          {print {ret 5}}
          {print y}} '(x y))
 
+(eval '{do {set x 3}
+         {set y {ref x}}
+         {set y {deref y}}
+         {print y}} '(x y))
+
 #|
 (eval '{with {x 3}
            {with {y 2}
