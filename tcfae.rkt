@@ -8,8 +8,7 @@
   [numT]
   [funT (left TYPE?)
         (right TYPE?)]
-  [pairT (left TYPE?)
-         (right TYPE?)])
+  [listT (t TYPE?)])
 
 (define-type TCFAE
   [num (n number?)]
@@ -88,7 +87,7 @@
      (fix (parse (second input)))]
     [(eq? (first input) 'pair)
      (pair (parse (second input))
-           (parse (third input)))]
+           (pair (parse (third input)) (num 0)))]
     [(eq? (first input) 'first)
      (fst (parse (second input)))]
     [(eq? (first input) 'rest)
@@ -110,8 +109,7 @@
 ;    [(eq? (first t) 'list)
 ;     (listT (parse-type (second t)))]
     [(eq? (first t) 'pair)
-     (pairT (parse-type (second t))
-            (parse-type (third t)))]))
+     (listT (parse-type (second t)))]))
 
 ;(test (parse '1) (num 1))
 ;(test (parse '{+ 1 2}) (add (num 1) (num 2)))
@@ -197,17 +195,21 @@
                (error 'typecheck "tipo errado na aplicação")))]
     [id (name) (lookup-type name env)]
     [pair (left right)
-          (pairT (typecheck left env)
-                 (typecheck right env))]
+          (local ([define tleft (typecheck left env)]
+                  [define tright (typecheck right env)])
+            (if (and (listT? tright)
+                     (equal? (listT-t tright) tleft))
+                (tright)
+                (error 'typecheck "tipo errado no par")))]
     [fst (p)
          (let ((tp (typecheck p env)))
-           (if (pairT? tp)
-               (pairT-left tp)
+           (if (listT? tp)
+               (listT-t tp)
                (error 'typecheck "tipo errado no first")))]
     [snd (p)
          (let ((tp (typecheck p env)))
-           (if (pairT? tp)
-               (pairT-right tp)
+           (if (listT? tp)
+               (tp)
                (error 'typecheck "tipo errado no rest")))]
     [fix (func)
          (let ((tfix (typecheck (fun-body func)
