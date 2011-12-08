@@ -94,7 +94,7 @@
     [(eq? (first input) 'rest)
      (snd (parse (second input)))]
     [(eq? (first input) 'list)
-     (foldr pair (num 0) (map parse (rest input)))]
+     (foldr pair (nil (parse-type (second input))) (map parse (list-tail (rest input) 2)))]
     [(eq? (first input) 'nil)
      (nil (parse-type (second input)))]
     [else
