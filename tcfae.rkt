@@ -29,7 +29,8 @@
   [pair (first TCFAE?)
         (second TCFAE?)]
   [fst (pair TCFAE?)]
-  [snd (pair TCFAE?)])
+  [snd (pair TCFAE?)]
+  [nil (t TYPE?)])
 
 (define-type TCFAE-Val
   [numV (n number?)]
@@ -87,13 +88,15 @@
      (fix (parse (second input)))]
     [(eq? (first input) 'pair)
      (pair (parse (second input))
-           (pair (parse (third input)) (num 0)))]
+           (parse (third input)))]
     [(eq? (first input) 'first)
      (fst (parse (second input)))]
     [(eq? (first input) 'rest)
      (snd (parse (second input)))]
     [(eq? (first input) 'list)
      (foldr pair (num 0) (map parse (rest input)))]
+    [(eq? (first input) 'nil)
+     (nil (parse-type (second input)))]
     [else
      (foldl (lambda (arg func) (app func arg))
             (parse (first input))
@@ -199,7 +202,7 @@
                   [define tright (typecheck right env)])
             (if (and (listT? tright)
                      (equal? (listT-t tright) tleft))
-                (tright)
+                tright
                 (error 'typecheck "tipo errado no par")))]
     [fst (p)
          (let ((tp (typecheck p env)))
@@ -211,6 +214,8 @@
            (if (listT? tp)
                (tp)
                (error 'typecheck "tipo errado no rest")))]
+    [nil (t)
+         (listT t)]
     [fix (func)
          (let ((tfix (typecheck (fun-body func)
                                 (tenv-entry (fun-param func)
@@ -252,7 +257,8 @@
                                          (lambda () closure)
                                          env))
                  (define closure (interp (fun-body func) newenv))]
-           closure)]))
+           closure)]
+    [nil (t) (numV 0)]))
 
 #|(define MAP (parse '{fix {fun {map}
                               {fun {f l}
